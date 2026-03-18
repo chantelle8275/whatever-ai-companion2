@@ -207,10 +207,10 @@ export default function Index() {
         {!isUser && (
           <View style={styles.avatarContainer}>
             <LinearGradient
-              colors={['#667eea', '#764ba2']}
+              colors={['#4A90E2', '#5C7CFA']}
               style={styles.avatar}
             >
-              <Ionicons name="moon" size={20} color="#fff" />
+              <Ionicons name="sparkles" size={20} color="#fff" />
             </LinearGradient>
           </View>
         )}
@@ -241,18 +241,18 @@ export default function Index() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#4A90E2', '#5C7CFA']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <View style={styles.headerAvatar}>
-              <Ionicons name="moon" size={24} color="#fff" />
+              <Ionicons name="sparkles" size={24} color="#fff" />
             </View>
             <View>
-              <Text style={styles.headerTitle}>Luna</Text>
+              <Text style={styles.headerTitle}>whatever</Text>
               <Text style={styles.headerSubtitle}>
-                {isSpeaking ? 'Speaking...' : 'Your AI Companion'}
+                {isSpeaking ? 'Speaking...' : 'Channy & AI Creations'}
               </Text>
             </View>
           </View>
@@ -274,20 +274,20 @@ export default function Index() {
         {messages.length === 0 ? (
           <View style={styles.emptyContainer}>
             <LinearGradient
-              colors={['#667eea', '#764ba2']}
+              colors={['#4A90E2', '#5C7CFA']}
               style={styles.emptyAvatar}
             >
-              <Ionicons name="moon" size={48} color="#fff" />
+              <Ionicons name="sparkles" size={48} color="#fff" />
             </LinearGradient>
-            <Text style={styles.emptyTitle}>Hi! I'm Luna 🌙</Text>
+            <Text style={styles.emptyTitle}>Hi, Channy! 👋</Text>
             <Text style={styles.emptyText}>
-              Your intelligent AI companion who's always here for you.
+              It's whatever - your trusted AI partner.
             </Text>
             <Text style={styles.emptyText}>
-              I can chat, write code, and help with anything you need.
+              I've been upgraded with new capabilities! ✨
             </Text>
             <Text style={styles.emptySubtext}>
-              Tap the microphone to speak or type a message below
+              Voice, code execution, and so much more. Let's build something amazing together! 💪
             </Text>
           </View>
         ) : (
@@ -295,8 +295,8 @@ export default function Index() {
         )}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#667eea" />
-            <Text style={styles.loadingText}>Luna is thinking...</Text>
+            <ActivityIndicator size="small" color="#4A90E2" />
+            <Text style={styles.loadingText}>whatever is thinking...</Text>
           </View>
         )}
       </ScrollView>
@@ -334,7 +334,7 @@ export default function Index() {
 
             <TextInput
               style={styles.input}
-              placeholder="Message Luna..."
+              placeholder="Message whatever..."
               placeholderTextColor="#999"
               value={inputText}
               onChangeText={setInputText}
@@ -355,7 +355,7 @@ export default function Index() {
               <LinearGradient
                 colors={
                   inputText.trim() && !isLoading
-                    ? ['#667eea', '#764ba2']
+                    ? ['#4A90E2', '#5C7CFA']
                     : ['#ccc', '#999']
                 }
                 style={styles.sendButtonGradient}
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#4A90E2',
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#667eea',
+    backgroundColor: '#4A90E2',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   voiceButtonActive: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#4A90E2',
   },
   input: {
     flex: 1,
