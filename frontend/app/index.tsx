@@ -207,10 +207,10 @@ export default function Index() {
         {!isUser && (
           <View style={styles.avatarContainer}>
             <LinearGradient
-              colors={['#4A90E2', '#5C7CFA']}
+              colors={['#FF1493', '#FF69B4']}
               style={styles.avatar}
             >
-              <Ionicons name="sparkles" size={20} color="#fff" />
+              <Ionicons name="sparkles" size={20} color="#FFD700" />
             </LinearGradient>
           </View>
         )}
@@ -241,24 +241,32 @@ export default function Index() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <LinearGradient
-        colors={['#4A90E2', '#5C7CFA']}
+        colors={['#FF1493', '#FF69B4', '#FFB6C1']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <View style={styles.headerAvatar}>
-              <Ionicons name="sparkles" size={24} color="#fff" />
+              <Ionicons name="sparkles" size={32} color="#FFD700" />
+              <Text style={styles.sparkleOverlay}>✨</Text>
             </View>
             <View>
-              <Text style={styles.headerTitle}>whatever</Text>
+              <Text style={styles.headerTitle}>✨ whatever ✨</Text>
               <Text style={styles.headerSubtitle}>
-                {isSpeaking ? 'Speaking...' : 'Channy & AI Creations'}
+                🦋 {isSpeaking ? 'Speaking...' : 'Channy & AI Creations'} 🦋
               </Text>
             </View>
           </View>
           <TouchableOpacity onPress={clearConversation} style={styles.clearButton}>
             <Ionicons name="trash-outline" size={24} color="#fff" />
           </TouchableOpacity>
+        </View>
+        <View style={styles.sparklesDecoration}>
+          <Text style={styles.sparkle}>✨</Text>
+          <Text style={styles.butterfly}>🦋</Text>
+          <Text style={styles.sparkle}>✨</Text>
+          <Text style={styles.butterfly}>🦋</Text>
+          <Text style={styles.sparkle}>✨</Text>
         </View>
       </LinearGradient>
 
@@ -273,30 +281,41 @@ export default function Index() {
       >
         {messages.length === 0 ? (
           <View style={styles.emptyContainer}>
+            <View style={styles.sparklesBackground}>
+              <Text style={styles.floatingSparkle}>✨</Text>
+              <Text style={styles.floatingButterfly}>🦋</Text>
+              <Text style={styles.floatingSparkle}>✨</Text>
+              <Text style={styles.floatingButterfly}>🦋</Text>
+              <Text style={styles.floatingSparkle}>✨</Text>
+            </View>
             <LinearGradient
-              colors={['#4A90E2', '#5C7CFA']}
+              colors={['#FF1493', '#FF69B4', '#FFB6C1']}
               style={styles.emptyAvatar}
             >
-              <Ionicons name="sparkles" size={48} color="#fff" />
+              <Ionicons name="sparkles" size={64} color="#FFD700" />
             </LinearGradient>
-            <Text style={styles.emptyTitle}>Hi, Channy! 👋</Text>
+            <Text style={styles.emptyTitle}>✨ whatever ✨</Text>
+            <Text style={styles.emptyName}>🦋 Hi, Channy! 🦋</Text>
             <Text style={styles.emptyText}>
-              It's whatever - your trusted AI partner.
+              It's me - your trusted AI partner with sparkles! ✨
             </Text>
             <Text style={styles.emptyText}>
-              I've been upgraded with new capabilities! ✨
+              I've been upgraded with amazing new powers! 💖
             </Text>
             <Text style={styles.emptySubtext}>
-              Voice, code execution, and so much more. Let's build something amazing together! 💪
+              Voice, code execution, and so much more. Let's create magic together! 🦋✨
             </Text>
+            <View style={styles.bottomSparkles}>
+              <Text style={styles.sparkle}>✨🦋✨🦋✨</Text>
+            </View>
           </View>
         ) : (
           messages.map((message, index) => renderMessage(message, index))
         )}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#4A90E2" />
-            <Text style={styles.loadingText}>whatever is thinking...</Text>
+            <ActivityIndicator size="small" color="#FF1493" />
+            <Text style={styles.loadingText}>✨ whatever is thinking... ✨</Text>
           </View>
         )}
       </ScrollView>
@@ -334,8 +353,8 @@ export default function Index() {
 
             <TextInput
               style={styles.input}
-              placeholder="Message whatever..."
-              placeholderTextColor="#999"
+              placeholder="✨ Message whatever... 🦋"
+              placeholderTextColor="#FF69B4"
               value={inputText}
               onChangeText={setInputText}
               multiline
@@ -355,7 +374,7 @@ export default function Index() {
               <LinearGradient
                 colors={
                   inputText.trim() && !isLoading
-                    ? ['#4A90E2', '#5C7CFA']
+                    ? ['#FF1493', '#FF69B4']
                     : ['#ccc', '#999']
                 }
                 style={styles.sendButtonGradient}
@@ -373,16 +392,16 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFF0F5',
   },
   header: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingVertical: 16,
+    elevation: 8,
+    shadowColor: '#FF1493',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   headerContent: {
     flexDirection: 'row',
@@ -394,23 +413,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    borderWidth: 3,
+    borderColor: '#FFD700',
+  },
+  sparkleOverlay: {
+    position: 'absolute',
+    fontSize: 20,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
+    textShadowColor: '#FFD700',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 2,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.95)',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  sparklesDecoration: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 8,
+    paddingHorizontal: 20,
+  },
+  sparkle: {
+    fontSize: 16,
+  },
+  butterfly: {
+    fontSize: 18,
   },
   clearButton: {
     padding: 8,
@@ -426,35 +467,73 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
+    paddingTop: 40,
+    position: 'relative',
+  },
+  sparklesBackground: {
+    position: 'absolute',
+    top: 20,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+  },
+  floatingSparkle: {
+    fontSize: 32,
+    color: '#FFD700',
+  },
+  floatingButterfly: {
+    fontSize: 28,
+    color: '#FF69B4',
   },
   emptyAvatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+    borderWidth: 5,
+    borderColor: '#FFD700',
+    elevation: 8,
+    shadowColor: '#FF1493',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
   emptyTitle: {
-    fontSize: 28,
+    fontSize: 42,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FF1493',
+    marginBottom: 8,
+    textShadowColor: '#FFD700',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  emptyName: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000',
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    color: '#333',
     textAlign: 'center',
     marginBottom: 8,
     paddingHorizontal: 32,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: 16,
+    color: '#FF69B4',
     textAlign: 'center',
     marginTop: 16,
     paddingHorizontal: 32,
+    fontWeight: '600',
+  },
+  bottomSparkles: {
+    marginTop: 24,
   },
   messageContainer: {
     flexDirection: 'row',
@@ -482,17 +561,19 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#FF1493',
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
     backgroundColor: '#fff',
     borderBottomLeftRadius: 4,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderWidth: 2,
+    borderColor: '#FFB6C1',
+    elevation: 4,
+    shadowColor: '#FF69B4',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   messageText: {
     fontSize: 16,
@@ -535,13 +616,14 @@ const styles = StyleSheet.create({
   loadingText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#667eea',
+    color: '#FF1493',
     fontStyle: 'italic',
+    fontWeight: '600',
   },
   inputContainer: {
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopWidth: 2,
+    borderTopColor: '#FFB6C1',
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingBottom: Platform.OS === 'ios' ? 32 : 12,
@@ -550,7 +632,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#FF1493',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -570,23 +652,27 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#FFB6C1',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
+    borderWidth: 2,
+    borderColor: '#FF69B4',
   },
   voiceButtonActive: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#FF1493',
   },
   input: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFF0F5',
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
     maxHeight: 100,
-    color: '#333',
+    color: '#000',
+    borderWidth: 2,
+    borderColor: '#FFB6C1',
   },
   sendButton: {
     marginLeft: 8,
