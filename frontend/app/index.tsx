@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ interface Message {
   timestamp: string;
   code_executed?: string;
   code_result?: string;
+  github_actions?: any[];
 }
 
 export default function Index() {
@@ -36,8 +38,22 @@ export default function Index() {
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
+
+  // 🔑 GitHub session state — held in memory only, never persisted
+  const [showGitHubModal, setShowGitHubModal] = useState(false);
+  const [githubToken, setGithubToken] = useState('');
+  const [githubRepo, setGithubRepo] = useState('chantelle8275/whatever-ai-companion');
+  const [githubBranch, setGithubBranch] = useState('main');
+  const [tokenDraft, setTokenDraft] = useState('');
+  const [repoDraft, setRepoDraft] = useState('chantelle8275/whatever-ai-companion');
+  const [branchDraft, setBranchDraft] = useState('main');
+  const [isTestingGitHub, setIsTestingGitHub] = useState(false);
+  const [isCommitting, setIsCommitting] = useState(false);
+
   const scrollViewRef = useRef<ScrollView>(null);
   const userId = 'default_user';
+
+  const githubActive = !!githubToken && !!githubRepo;
 
   useEffect(() => {
     loadConversationHistory();
@@ -79,10 +95,20 @@ export default function Index() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${EXPO_PUBLIC_BACKEND_URL}/api/chat`, {
+      const payload: any = {
         message: text,
         user_id: userId,
-      });
+      };
+      if (githubActive) {
+        payload.github_token = githubToken;
+        payload.github_repo = githubRepo;
+        payload.github_branch = githubBranch || 'main';
+      }
+
+      const response = await axios.post(
+        `${EXPO_PUBLIC_BACKEND_URL}/api/chat`,
+        payload,
+      );
 
       const assistantMessage: Message = {
         role: 'assistant',
@@ -90,11 +116,23 @@ export default function Index() {
         timestamp: new Date().toISOString(),
         code_executed: response.data.code_executed,
         code_result: response.data.code_result,
+        github_actions: response.data.github_actions,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Auto-speak Luna's response
+      // Briefly show "committing" indicator if she made GitHub commits
+      if (
+        Array.isArray(response.data.github_actions) &&
+        response.data.github_actions.some(
+          (a: any) => a.action === 'update_file' && a.success,
+        )
+      ) {
+        setIsCommitting(true);
+        setTimeout(() => setIsCommitting(false), 2500);
+      }
+
+      // Auto-speak whatever's response
       if (response.data.response) {
         speakText(response.data.response);
       }
@@ -104,6 +142,68 @@ export default function Index() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // ---------------------------------------------------------------------
+  // GitHub session helpers
+  // ---------------------------------------------------------------------
+  const openGitHubModal = () => {
+    setTokenDraft(githubToken);
+    setRepoDraft(githubRepo);
+    setBranchDraft(githubBranch || 'main');
+    setShowGitHubModal(true);
+  };
+
+  const saveGitHubSession = async () => {
+    const t = tokenDraft.trim();
+    const r = repoDraft.trim();
+    const b = branchDraft.trim() || 'main';
+    if (!t || !r) {
+      Alert.alert('Missing info', 'Please paste both your GitHub token and repo (owner/name).');
+      return;
+    }
+    setIsTestingGitHub(true);
+    try {
+      const res = await axios.post(`${EXPO_PUBLIC_BACKEND_URL}/api/github/test`, {
+        github_token: t,
+        github_repo: r,
+      });
+      if (res.data?.success) {
+        setGithubToken(t);
+        setGithubRepo(r);
+        setGithubBranch(b);
+        setShowGitHubModal(false);
+        Alert.alert(
+          '🔑 GitHub connected',
+          `whatever can now edit code in ${res.data.repo}. Token lives in memory only — it disappears when you close the app.`,
+        );
+      } else {
+        Alert.alert('Connection failed', res.data?.error || 'Could not verify the token + repo.');
+      }
+    } catch (e: any) {
+      Alert.alert('Connection failed', e?.response?.data?.detail || e?.message || 'Unknown error');
+    } finally {
+      setIsTestingGitHub(false);
+    }
+  };
+
+  const clearGitHubSession = () => {
+    Alert.alert(
+      'Clear GitHub session?',
+      'whatever will no longer be able to edit your repo until you paste the token again.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: () => {
+            setGithubToken('');
+            setTokenDraft('');
+            setShowGitHubModal(false);
+          },
+        },
+      ],
+    );
   };
 
   const speakText = (text: string) => {
@@ -253,13 +353,29 @@ export default function Index() {
             <View>
               <Text style={styles.headerTitle}>✨ whatever ✨</Text>
               <Text style={styles.headerSubtitle}>
-                🦋 {isSpeaking ? 'Speaking...' : 'Channy & AI Creations'} 🦋
+                🦋 {isCommitting
+                  ? '✨ committing code...'
+                  : isSpeaking
+                  ? 'Speaking...'
+                  : githubActive
+                  ? `Connected to ${githubRepo}`
+                  : 'Channy & AI Creations'} 🦋
               </Text>
             </View>
           </View>
-          <TouchableOpacity onPress={clearConversation} style={styles.clearButton}>
-            <Ionicons name="trash-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={openGitHubModal} style={styles.headerIconButton}>
+              <Ionicons
+                name={githubActive ? 'key' : 'key-outline'}
+                size={22}
+                color={githubActive ? '#FFD700' : '#fff'}
+              />
+              {githubActive && <View style={styles.activeDot} />}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={clearConversation} style={styles.headerIconButton}>
+              <Ionicons name="trash-outline" size={22} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.sparklesDecoration}>
           <Text style={styles.sparkle}>✨</Text>
@@ -385,6 +501,113 @@ export default function Index() {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* GitHub Session Modal */}
+      <Modal
+        visible={showGitHubModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowGitHubModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalCard}>
+            <LinearGradient
+              colors={['#FF1493', '#FF69B4']}
+              style={styles.modalHeader}
+            >
+              <Ionicons name="key" size={24} color="#FFD700" />
+              <Text style={styles.modalTitle}>🔑 GitHub Session</Text>
+            </LinearGradient>
+            <ScrollView style={styles.modalBody} keyboardShouldPersistTaps="handled">
+              <Text style={styles.modalHelp}>
+                Paste your GitHub Personal Access Token so whatever can read & commit code
+                to your repo. The token stays in memory only — it's never saved to disk or
+                the server. Close the app and it's gone. ✨
+              </Text>
+
+              <Text style={styles.modalLabel}>Repo (owner/name)</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={repoDraft}
+                onChangeText={setRepoDraft}
+                placeholder="chantelle8275/whatever-ai-companion"
+                placeholderTextColor="#FF69B4"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              <Text style={styles.modalLabel}>Branch</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={branchDraft}
+                onChangeText={setBranchDraft}
+                placeholder="main"
+                placeholderTextColor="#FF69B4"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              <Text style={styles.modalLabel}>Personal Access Token</Text>
+              <TextInput
+                style={[styles.modalInput, styles.modalTokenInput]}
+                value={tokenDraft}
+                onChangeText={setTokenDraft}
+                placeholder="ghp_..."
+                placeholderTextColor="#FF69B4"
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry
+                multiline={false}
+              />
+
+              <Text style={styles.modalHelpSmall}>
+                Need a token? Go to GitHub → Settings → Developer settings → Personal
+                access tokens → Generate new (classic). Give it `repo` scope.
+              </Text>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonSecondary]}
+                  onPress={() => setShowGitHubModal(false)}
+                  disabled={isTestingGitHub}
+                >
+                  <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
+                </TouchableOpacity>
+                {githubActive && (
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonDanger]}
+                    onPress={clearGitHubSession}
+                    disabled={isTestingGitHub}
+                  >
+                    <Text style={styles.modalButtonDangerText}>Clear</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalButtonPrimary]}
+                  onPress={saveGitHubSession}
+                  disabled={isTestingGitHub}
+                >
+                  <LinearGradient
+                    colors={['#FF1493', '#FF69B4']}
+                    style={styles.modalButtonGradient}
+                  >
+                    {isTestingGitHub ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.modalButtonPrimaryText}>
+                        {githubActive ? 'Update & Verify' : 'Connect'}
+                      </Text>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -455,6 +678,137 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIconButton: {
+    padding: 8,
+    marginLeft: 4,
+    position: 'relative',
+  },
+  activeDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFD700',
+    borderWidth: 1,
+    borderColor: '#fff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 460,
+    maxHeight: '90%',
+    backgroundColor: '#FFF0F5',
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#FFD700',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    marginLeft: 8,
+  },
+  modalBody: {
+    padding: 18,
+  },
+  modalHelp: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  modalHelpSmall: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FF1493',
+    marginBottom: 6,
+    marginTop: 6,
+  },
+  modalInput: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#FFB6C1',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#000',
+    marginBottom: 6,
+  },
+  modalTokenInput: {
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+    gap: 8,
+  },
+  modalButton: {
+    borderRadius: 22,
+    overflow: 'hidden',
+  },
+  modalButtonSecondary: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#FFB6C1',
+  },
+  modalButtonSecondaryText: {
+    color: '#FF1493',
+    fontWeight: '600',
+  },
+  modalButtonDanger: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#FF1493',
+  },
+  modalButtonDangerText: {
+    color: '#FF1493',
+    fontWeight: '700',
+  },
+  modalButtonPrimary: {},
+  modalButtonGradient: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 120,
+  },
+  modalButtonPrimaryText: {
+    color: '#fff',
+    fontWeight: '700',
   },
   messagesContainer: {
     flex: 1,
